@@ -1,0 +1,44 @@
+package proxyauth.actions;
+
+import proxyauth.ProxyRequest;
+import proxyauth.Utils;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+/**
+ * Treat the incoming request as a HTTP get, and reply by echoing the headers
+ *
+ * @author Zeckie
+ * Copyright and licence details in Main.java
+ */
+public class EchoAction implements Action {
+
+    @Override
+    public void action(ProxyRequest proxyRequest) throws IOException {
+        PrintWriter pw = new PrintWriter(proxyRequest.incomingSocket.getOutputStream(), false, Utils.ASCII);
+        String requestLine = proxyRequest.headers[0];
+        if (requestLine.startsWith("GET ")) {
+            pw.println("""
+                    HTTP/1.1 200 Echoing your request
+                    Content-Type: text/plain
+                    Connection: close
+                            
+                    Received request + headers:
+                    """);
+        } else {
+            pw.println("""
+                    HTTP/1.1 501 Not Implemented
+                    Content-Type: text/plain
+                    Connection: close
+                                
+                    """);
+        }
+
+        for (String line : proxyRequest.headers) {
+            pw.println(line);
+        }
+        pw.flush();
+        pw.close();
+    }
+}

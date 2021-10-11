@@ -1,7 +1,7 @@
 package proxyauth;
 
 import proxyauth.actions.Action;
-import proxyauth.actions.CloseAction;
+import proxyauth.actions.EchoAction;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -19,7 +19,7 @@ public class Configuration {
 
     static final int LISTEN_BACKLOG = 5;
     static final int LISTEN_PORT = 8080;
-    static final Action INITIAL_ACTION=new CloseAction();
+    static final Action INITIAL_ACTION=new EchoAction();
     static InetAddress listenAddress = null;
 
     static void init() throws IOException {

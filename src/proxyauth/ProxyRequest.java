@@ -17,7 +17,7 @@ public class ProxyRequest extends Thread {
     final ProxyListener parent;
 
     /** headers includes request line */
-    String[] headers;
+    public String[] headers;
 
     public ProxyRequest(Socket sock, ProxyListener proxyListener) {
         this.incomingSocket = sock;

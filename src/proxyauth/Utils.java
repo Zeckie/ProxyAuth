@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * Copyright and licence details in Main.java
  */
 public class Utils {
-    static final Charset ASCII = StandardCharsets.US_ASCII;
+    public static final Charset ASCII = StandardCharsets.US_ASCII;
 
     /**
      * Convert String to raw ascii bytes
