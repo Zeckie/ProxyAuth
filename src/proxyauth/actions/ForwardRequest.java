@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static proxyauth.Utils.ASCII;
 import static proxyauth.Utils.ascii;
@@ -22,6 +23,8 @@ import static proxyauth.Utils.ascii;
  * Copyright and licence details in Main.java
  */
 public class ForwardRequest implements StatusListener<PassThrough> {
+    static final Pattern PROXY_AUTH_ERROR = Pattern.compile("^HTTP/\\d.\\d 407 .*");
+
     private final ForwardAction action;
     /**
      * The request being forwarded
@@ -64,6 +67,19 @@ public class ForwardRequest implements StatusListener<PassThrough> {
             upload.start();
 
             proxyRequest.responseHeaders = ProxyRequest.processHeaders(upstream.getInputStream());
+
+            if (Configuration.STOP_ON_PROXY_AUTH_ERROR) {
+                final String line = proxyRequest.responseHeaders.get(0);
+                if (PROXY_AUTH_ERROR.matcher(line).matches()) {
+                    System.err.println("STOPPING due to proxy auth error: " + line);
+                    System.exit(5); //magic number 5 often = access denied
+                    /*
+                     * TODO: change to respond to all requests with error page,
+                     * instead of quitting
+                     */
+                }
+            }
+
             download = new PassThrough(
                     this, upstream.getInputStream(),
                     new BufferedOutputStream(proxyRequest.incomingSocket.getOutputStream(), Configuration.BUF_SIZE),

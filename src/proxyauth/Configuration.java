@@ -26,6 +26,11 @@ public class Configuration {
     public static final int LISTEN_PORT = 8080;
     public static Action INITIAL_ACTION;
 
+    /**
+     * Immediate stop on http error 407
+     * (prevent account from being locked due to multiple attempts with wrong password)
+     */
+    public static final boolean STOP_ON_PROXY_AUTH_ERROR = true;
 
     static InetAddress listenAddress = null;
     public static final int MAX_ACTIVE_REQUESTS = 20;
