@@ -18,7 +18,7 @@ public class EchoAction implements Action {
     public boolean action(ProxyRequest proxyRequest) throws IOException {
         boolean success;
         PrintWriter pw = new PrintWriter(proxyRequest.incomingSocket.getOutputStream(), false, Utils.ASCII);
-        String requestLine = proxyRequest.headers[0];
+        String requestLine = proxyRequest.requestHeaders[0];
         if (requestLine.startsWith("GET ")) {
             pw.println("""
                     HTTP/1.1 200 Echoing your request
@@ -38,7 +38,7 @@ public class EchoAction implements Action {
             success = false;
         }
 
-        for (String line : proxyRequest.headers) {
+        for (String line : proxyRequest.requestHeaders) {
             pw.println(line);
         }
         pw.flush();

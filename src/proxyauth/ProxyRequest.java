@@ -18,8 +18,19 @@ public class ProxyRequest extends Thread {
     public final Socket incomingSocket;
     final ProxyListener parent;
 
-    /** headers includes request line */
-    public String[] headers;
+    /**
+     * http headers received, including the request line
+     * Note that for CONNECT requests (e.g. for https connections), this will contain the
+     * target hostname and port, but not much else.
+     */
+    public String[] requestHeaders;
+
+    /**
+     * http response headers received from upstream proxy, including the response line
+     * Note that for CONNECT requests (e.g. for https connections), this will just be headers
+     * from the proxy, not the target server
+     */
+    public String[] responseHeaders;
 
     /**
      * Timestamp when this request started (when the incoming connection was accepted)
@@ -39,11 +50,11 @@ public class ProxyRequest extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
         boolean success = false;
-        try (InputStream inputStream = incomingSocket.getInputStream()) {
+        try (incomingSocket) {
+            System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
 
-            processHeaders(inputStream);
+            requestHeaders = processHeaders(incomingSocket.getInputStream());
 
             success = Configuration.INITIAL_ACTION.action(this);
 
@@ -54,7 +65,7 @@ public class ProxyRequest extends Thread {
         }
     }
 
-    private void processHeaders(InputStream inputStream) throws IOException {
+    public static String[] processHeaders(InputStream inputStream) throws IOException {
         byte[] buf = new byte[Configuration.BUF_SIZE];
         int bytes_read = 0;
 
@@ -75,6 +86,6 @@ public class ProxyRequest extends Thread {
             System.out.flush();
         }
 
-        headers = new String(buf, 0, bytes_read, ASCII).split("\r\n");
+        return new String(buf, 0, bytes_read, ASCII).split("\r\n");
     }
 }
