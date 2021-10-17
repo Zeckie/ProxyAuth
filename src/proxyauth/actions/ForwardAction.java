@@ -11,13 +11,7 @@ import java.net.InetAddress;
  * @author Zeckie
  * Copyright and licence details in Main.java
  */
-public record ForwardAction(InetAddress host, int port) implements Action {
-
-    public ForwardAction(InetAddress host, int port) {
-        this.host = host;
-        this.port = port;
-        assert (port > 0);
-    }
+public record ForwardAction(InetAddress host, int port, String username, String password) implements Action {
 
     @Override
     public boolean action(ProxyRequest proxyRequest) throws IOException {

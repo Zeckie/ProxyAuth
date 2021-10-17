@@ -3,7 +3,10 @@ package proxyauth;
 import proxyauth.actions.Action;
 import proxyauth.actions.ForwardAction;
 
+import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 
 /**
@@ -29,6 +32,21 @@ public class Configuration {
 
     static void init() throws IOException {
         listenAddress = InetAddress.getByName("127.0.0.127");
-        INITIAL_ACTION = new ForwardAction(InetAddress.getByName("proxy.example.com"), 8080);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Username");
+        String username = br.readLine();
+        Console c = System.console();
+        String password;
+        if (c == null) {
+            System.out.println("Password (not masked!)");
+            password = br.readLine();
+        } else {
+            System.out.println("Password (masked)");
+            char[] pass = c.readPassword();
+            password = new String(pass);
+        }
+
+        INITIAL_ACTION = new ForwardAction(InetAddress.getByName("proxy.example.com"), 8080, username, password);
     }
 }

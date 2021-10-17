@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static proxyauth.Configuration.DEBUG;
@@ -23,14 +24,14 @@ public class ProxyRequest extends Thread {
      * Note that for CONNECT requests (e.g. for https connections), this will contain the
      * target hostname and port, but not much else.
      */
-    public String[] requestHeaders;
+    public List<String> requestHeaders;
 
     /**
      * http response headers received from upstream proxy, including the response line
      * Note that for CONNECT requests (e.g. for https connections), this will just be headers
      * from the proxy, not the target server
      */
-    public String[] responseHeaders;
+    public List<String> responseHeaders;
 
     /**
      * Timestamp when this request started (when the incoming connection was accepted)
@@ -65,7 +66,7 @@ public class ProxyRequest extends Thread {
         }
     }
 
-    public static String[] processHeaders(InputStream inputStream) throws IOException {
+    public static List<String> processHeaders(InputStream inputStream) throws IOException {
         byte[] buf = new byte[Configuration.BUF_SIZE];
         int bytes_read = 0;
 
@@ -86,6 +87,6 @@ public class ProxyRequest extends Thread {
             System.out.flush();
         }
 
-        return new String(buf, 0, bytes_read, ASCII).split("\r\n");
+        return Arrays.asList(new String(buf, 0, bytes_read, ASCII).split("\r\n"));
     }
 }
