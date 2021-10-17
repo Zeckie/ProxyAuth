@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static proxyauth.Configuration.DEBUG;
 import static proxyauth.Utils.ASCII;
@@ -19,7 +21,18 @@ public class ProxyRequest extends Thread {
     /** headers includes request line */
     public String[] headers;
 
-    public ProxyRequest(Socket sock, ProxyListener proxyListener) {
+    /**
+     * Timestamp when this request started (when the incoming connection was accepted)
+     */
+    public Date started = new Date();
+
+    /**
+     * Counter to give threads unique names
+     */
+    private static final AtomicLong THREAD_COUNTER = new AtomicLong();
+
+    public ProxyRequest(Socket sock, ProxyListener proxyListener, ThreadGroup threads) {
+        super(threads, "ProxyRequest-" + THREAD_COUNTER.incrementAndGet());
         this.incomingSocket = sock;
         this.parent = proxyListener;
     }
@@ -27,14 +40,17 @@ public class ProxyRequest extends Thread {
     @Override
     public void run() {
         System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
+        boolean success = false;
         try (InputStream inputStream = incomingSocket.getInputStream()) {
 
             processHeaders(inputStream);
 
-            Configuration.INITIAL_ACTION.action(this);
+            success = Configuration.INITIAL_ACTION.action(this);
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            parent.finished(this, success);
         }
     }
 

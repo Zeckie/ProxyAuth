@@ -21,6 +21,7 @@ public class Configuration {
     static final int LISTEN_PORT = 8080;
     static final Action INITIAL_ACTION=new EchoAction();
     static InetAddress listenAddress = null;
+    public static final int MAX_ACTIVE_REQUESTS = 20;
 
     static void init() throws IOException {
         listenAddress = InetAddress.getByName("127.0.0.127");

@@ -11,5 +11,12 @@ import java.io.IOException;
  * Copyright and licence details in Main.java
  */
 public interface Action {
-    void action(ProxyRequest proxyRequest) throws IOException;
+    /**
+     * Note, this method blocks until the action is complete.
+     *
+     * @param proxyRequest the request to be actioned
+     * @return the action succeeded
+     * @throws IOException
+     */
+    boolean action(ProxyRequest proxyRequest) throws IOException;
 }
