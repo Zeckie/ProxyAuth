@@ -12,7 +12,8 @@ import java.io.IOException;
 public class CloseAction implements Action {
 
     @Override
-    public void action(ProxyRequest proxyRequest) throws IOException {
+    public boolean action(ProxyRequest proxyRequest) throws IOException {
         proxyRequest.incomingSocket.close();
+        return true;
     }
 }

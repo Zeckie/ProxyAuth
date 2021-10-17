@@ -15,7 +15,8 @@ import java.io.PrintWriter;
 public class EchoAction implements Action {
 
     @Override
-    public void action(ProxyRequest proxyRequest) throws IOException {
+    public boolean action(ProxyRequest proxyRequest) throws IOException {
+        boolean success;
         PrintWriter pw = new PrintWriter(proxyRequest.incomingSocket.getOutputStream(), false, Utils.ASCII);
         String requestLine = proxyRequest.headers[0];
         if (requestLine.startsWith("GET ")) {
@@ -26,6 +27,7 @@ public class EchoAction implements Action {
                             
                     Received request + headers:
                     """);
+            success = true;
         } else {
             pw.println("""
                     HTTP/1.1 501 Not Implemented
@@ -33,6 +35,7 @@ public class EchoAction implements Action {
                     Connection: close
                                 
                     """);
+            success = false;
         }
 
         for (String line : proxyRequest.headers) {
@@ -40,5 +43,6 @@ public class EchoAction implements Action {
         }
         pw.flush();
         pw.close();
+        return success;
     }
 }
