@@ -9,12 +9,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static proxyauth.Configuration.DEBUG;
+import static proxyauth.Configuration.SOCKET_TIMEOUT;
 import static proxyauth.Utils.ASCII;
+
 /**
  * Handles a single request
+ *
  * @author Zeckie
  * Copyright and licence details in Main.java
-*/
+ */
 public class ProxyRequest extends Thread {
     public final Socket incomingSocket;
     final ProxyListener parent;
@@ -54,7 +57,7 @@ public class ProxyRequest extends Thread {
         boolean success = false;
         try (incomingSocket) {
             System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
-
+            incomingSocket.setSoTimeout(SOCKET_TIMEOUT);
             requestHeaders = processHeaders(incomingSocket.getInputStream());
 
             success = Configuration.INITIAL_ACTION.action(this);
