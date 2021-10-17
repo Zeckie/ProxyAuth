@@ -39,8 +39,16 @@ public class Configuration {
         listenAddress = InetAddress.getByName("127.0.0.127");
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Username");
+        String currentUser = System.getenv("USERNAME");
+        if (currentUser == null) {
+            System.out.println("Username:");
+        } else {
+            System.out.println("Username (press ENTER for '" + currentUser + "'):");
+        }
         String username = br.readLine();
+        if (username.length() == 0 && currentUser != null) {
+            username = currentUser;
+        }
         Console c = System.console();
         String password;
         if (c == null) {
