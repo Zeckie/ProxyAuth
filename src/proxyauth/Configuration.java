@@ -19,9 +19,9 @@ public class Configuration {
     private Configuration() {
     }
 
-    public static final int BUF_SIZE = 10240;
+    public static final int BUF_SIZE = 10240; // bytes
     public static final boolean DEBUG = true;
-
+    public static final int SOCKET_TIMEOUT = 180000; // milliseconds
     public static final int LISTEN_BACKLOG = 5;
     public static final int LISTEN_PORT = 8080;
     public static Action INITIAL_ACTION;

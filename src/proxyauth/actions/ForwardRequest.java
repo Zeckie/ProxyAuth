@@ -7,12 +7,14 @@ import proxyauth.StatusListener;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static proxyauth.Configuration.SOCKET_TIMEOUT;
 import static proxyauth.Utils.ASCII;
 import static proxyauth.Utils.ascii;
 
@@ -57,7 +59,9 @@ public class ForwardRequest implements StatusListener<PassThrough> {
         PassThrough upload;
         PassThrough download;
 
-        try (Socket upstream = new Socket(action.host(), action.port())) {
+        try (Socket upstream = new Socket()) {
+            upstream.setSoTimeout(SOCKET_TIMEOUT);
+            upstream.connect(new InetSocketAddress(action.host(), action.port()), SOCKET_TIMEOUT);
             this.upstreamSocket = upstream;
             BufferedOutputStream outputStream = new BufferedOutputStream(upstream.getOutputStream(), Configuration.BUF_SIZE);
 
