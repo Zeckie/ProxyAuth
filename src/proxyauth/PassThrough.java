@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static proxyauth.Utils.ascii;
@@ -21,9 +22,9 @@ public class PassThrough extends Thread {
     OutputStream os;
     StatusListener<PassThrough> listener;
     public AtomicLong bytesTransferred = new AtomicLong(0);
-    public final String[] headers;
+    public final List<String> headers;
 
-    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, boolean isUp, String[] headers) {
+    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, boolean isUp, List<String> headers) {
         super("PassThrough-" + THREAD_COUNTER.incrementAndGet() + (isUp ? "-up" : "-down"));
         this.is = is;
         this.os = os;

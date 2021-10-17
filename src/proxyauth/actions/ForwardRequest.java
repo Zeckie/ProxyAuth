@@ -8,6 +8,12 @@ import proxyauth.StatusListener;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
+import static proxyauth.Utils.ASCII;
+import static proxyauth.Utils.ascii;
 
 /**
  * Forwards a request to a proxy server
@@ -32,6 +38,18 @@ public class ForwardRequest implements StatusListener<PassThrough> {
         this.action = forwardAction;
     }
 
+    /**
+     * Return a copy of headers, with the configured proxy authorization
+     *
+     * @return
+     */
+    public List<String> processAuthHeaders(List<String> headers) {
+        headers = new ArrayList<String>(headers);
+        headers.removeIf(s -> s.toLowerCase().startsWith("proxy-authorization:"));
+        headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username() + ":" + action.password())), ASCII));
+        return headers;
+    }
+
     public boolean go() throws IOException {
         PassThrough upload;
         PassThrough download;
@@ -42,7 +60,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
 
             if (Configuration.DEBUG) System.out.println("upstream socket = " + upstream);
 
-            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true, proxyRequest.requestHeaders);
+            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true, processAuthHeaders(proxyRequest.requestHeaders));
             upload.start();
 
             proxyRequest.responseHeaders = ProxyRequest.processHeaders(upstream.getInputStream());
@@ -69,7 +87,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
                 System.out.println(
                         "--Finished--\n"
                                 + " - any errors: " + anyErrors + "\n"
-                                + " - request: " + proxyRequest.requestHeaders[0] + "\n"
+                                + " - request: " + proxyRequest.requestHeaders.get(0) + "\n"
                                 + " - upload: " + upload.bytesTransferred.get() + "\n"
                                 + " - download: " + download.bytesTransferred.get() + "\n"
                                 + " - elapsed: " + (System.currentTimeMillis() - proxyRequest.started.getTime())
