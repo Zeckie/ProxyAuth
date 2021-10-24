@@ -1,6 +1,7 @@
 plugins {
     java
     application
+    id("org.jetbrains.changelog") version "1.3.1"
 }
 
 version = "0.1.0"
@@ -21,4 +22,8 @@ java {
     tasks.jar {
         manifest.attributes["Main-Class"] = main
     }
+}
+
+changelog {
+    groups.set(listOf("Added"))
 }

@@ -1,0 +1,54 @@
+# GitHub Actions Workflow created for handling the release process based on the draft release prepared
+# with the Build workflow.
+
+name: Release
+on:
+  release:
+    types: [prereleased, released]
+
+jobs:
+
+  # Prepare and publish a GitHub release
+  release:
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v2.3.5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      # Setup Java 11 environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: 16
+          cache: gradle
+
+      # Update Unreleased section with the current release note
+      - name: Patch Changelog
+        run: |
+          ./gradlew patchChangelog --release-note="`cat << EOM
+          ${{ github.event.release.body }}
+          EOM`"
+
+      # Create pull request
+      - name: Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          BRANCH="changelog-update-$VERSION"
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git checkout -b $BRANCH
+          git commit -am "Changelog update - $VERSION"
+          git push --set-upstream origin $BRANCH
+          gh pr create \
+            --title "Changelog update - \`$VERSION\`" \
+            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
+            --base main \
+            --head $BRANCH
