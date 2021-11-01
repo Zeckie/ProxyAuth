@@ -57,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.properties.outputs.version }}
+      changelog: ${{ steps.properties.outputs.changelog }}
     steps:
 
       # Check out current repository
@@ -79,9 +80,14 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           NAME="$(echo "$PROPERTIES" | grep "^name:" | cut -f2- -d ' ')"
+          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
 
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=name::$NAME"
+          echo "::set-output name=changelog::$CHANGELOG"
 
       # Build artifact using build Gradle task
       - name: Build
@@ -93,6 +99,7 @@ jobs:
         with:
           name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
           path: ./build/libs/*
+
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
   releaseDraft:
@@ -120,6 +127,7 @@ jobs:
         with:
           tag_name: ${{ needs.build.outputs.version }}
           title: v${{ needs.build.outputs.version }}
+          body: ${{ needs.build.outputs.changelog }}
           draft: true
       - name: Download Artifact
         uses: actions/download-artifact@v2.0.10
