@@ -102,10 +102,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Check out current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v2.3.5
-
       # Remove old release drafts by using the curl request for the available releases with draft flag
       - name: Remove Old Release Drafts
         env:
@@ -117,9 +113,24 @@ jobs:
 
       # Create new release draft - which is not publicly visible and requires manual acceptance
       - name: Create Release Draft
+        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create v${{ needs.build.outputs.version }} \
-            --draft \
-            --title "v${{ needs.build.outputs.version }}" \
+        uses: actions/create-release@v1.1.4
+        with:
+          tag_name: ${{ needs.build.outputs.version }}
+          title: v${{ needs.build.outputs.version }}
+          draft: true
+      - name: Download Artifact
+        uses: actions/download-artifact@v2.0.10
+        with:
+          name: "${{ needs.build.outputs.name }} - ${{ needs.build.outputs.version }}"
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "${{ needs.build.outputs.name }}-${{ needs.build.outputs.version }}.jar"
+          asset_name: "${{ needs.build.outputs.name }}-${{ needs.build.outputs.version }}.jar"
+          asset_content_type: application/java-archive
