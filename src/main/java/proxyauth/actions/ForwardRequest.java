@@ -51,7 +51,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
     public List<String> processAuthHeaders(List<String> headers) {
         headers = new ArrayList<String>(headers);
         headers.removeIf(s -> s.toLowerCase().startsWith("proxy-authorization:"));
-        headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username() + ":" + action.password())), ASCII));
+        headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username + ":" + action.password)), ASCII));
         return headers;
     }
 
@@ -61,7 +61,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
 
         try (Socket upstream = new Socket()) {
             upstream.setSoTimeout(SOCKET_TIMEOUT);
-            upstream.connect(new InetSocketAddress(action.host(), action.port()), SOCKET_TIMEOUT);
+            upstream.connect(new InetSocketAddress(action.host, action.port), SOCKET_TIMEOUT);
             this.upstreamSocket = upstream;
             BufferedOutputStream outputStream = new BufferedOutputStream(upstream.getOutputStream(), Configuration.BUF_SIZE);
 
