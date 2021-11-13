@@ -1,5 +1,7 @@
 package proxyauth;
 
+import proxyauth.conf.Configuration;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,13 +25,15 @@ public class PassThrough extends Thread {
     StatusListener<PassThrough> listener;
     public AtomicLong bytesTransferred = new AtomicLong(0);
     public final List<String> headers;
+    final Configuration config;
 
-    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, boolean isUp, List<String> headers) {
+    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, boolean isUp, List<String> headers, Configuration config) {
         super("PassThrough-" + THREAD_COUNTER.incrementAndGet() + (isUp ? "-up" : "-down"));
         this.is = is;
         this.os = os;
         this.listener = listener;
         this.headers = headers;
+        this.config = config;
     }
 
     @Override
@@ -68,7 +72,7 @@ public class PassThrough extends Thread {
                 os.close();
                 is.close();
                 System.out.println(Thread.currentThread() + " SocketException -> closed. Bytes=" + bytesTransferred.get());
-                if (Configuration.DEBUG) se.printStackTrace();
+                if (config.DEBUG.getValue()) se.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();

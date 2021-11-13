@@ -1,6 +1,9 @@
 package proxyauth;
 
+import proxyauth.conf.Configuration;
+
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedHashSet;
@@ -25,12 +28,26 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
     private final Set<ProxyRequest> activeRequests = new LinkedHashSet<>();
 
 
+    public final Configuration config;
+
+    public ProxyListener(Configuration configuration) {
+        config = configuration;
+    }
+
+
     @Override
     public void run() {
 
-        try (ServerSocket incoming = new ServerSocket(Configuration.LISTEN_PORT, Configuration.LISTEN_BACKLOG, Configuration.listenAddress)) {
+        try (
+                ServerSocket incoming = new ServerSocket(
+                        config.LISTEN_PORT.getValue(),
+                        config.LISTEN_BACKLOG.getValue(),
+                        InetAddress.getByName(config.LISTEN_ADDRESS.getValue())
+                )
+        ) {
             System.out.println("Listening " + incoming);
 
+            //noinspection InfiniteLoopStatement (CTRL+C to stop)
             while (true) {
                 Socket sock = incoming.accept();
 
@@ -39,7 +56,7 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
                     activeRequests.add(proxyRequest);
                     activeRequests.notifyAll();
                     proxyRequest.start();
-                    while (activeRequests.size() >= Configuration.MAX_ACTIVE_REQUESTS) {
+                    while (activeRequests.size() >= config.MAX_ACTIVE_REQUESTS.getValue()) {
                         System.out.println("Active request limit reached - waiting for a request to finish");
                         activeRequests.wait();
                     }
@@ -60,6 +77,10 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
                     "Active requests:" + activeRequests.size() + "\n" +
                     "Active threads:" + THREADS.activeCount()
             );
+
+            if (config.DEBUG.getValue()) {
+                THREADS.list();
+            }
 
             activeRequests.notifyAll();
         }

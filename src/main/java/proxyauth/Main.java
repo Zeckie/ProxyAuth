@@ -1,5 +1,7 @@
 package proxyauth;
 
+import proxyauth.conf.Configuration;
+
 import java.io.IOException;
 
 /**
@@ -11,9 +13,12 @@ import java.io.IOException;
 public class Main {
     public static void main (String[] args) throws IOException {
         System.out.println(LICENCE);
+        Configuration.init(true);
 
-        Configuration.init();
-        new ProxyListener().run();
+        final Configuration configuration = new Configuration();
+        configuration.init(false);
+
+        new ProxyListener(configuration).run();
     }
 
     static final String LICENCE="""
