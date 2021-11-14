@@ -4,6 +4,18 @@ plugins {
     id("org.jetbrains.changelog") version "1.3.1"
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13")
+}
+
+tasks.test {
+    useJUnit()
+}
+
 version = "0.1.0"
 group = "com.github.zeckie"
 
