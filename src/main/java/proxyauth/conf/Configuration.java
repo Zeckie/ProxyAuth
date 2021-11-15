@@ -1,13 +1,13 @@
 package proxyauth.conf;
 
-import java.io.Console;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -89,8 +89,44 @@ public class Configuration {
         return allProps;
     }
 
+    void load(boolean required) throws IOException {
+        File configFile = new File(FILE_NAME);
+        if (!configFile.exists()) {
+            if (required) {
+                throw new FileNotFoundException("Configuration file " + FILE_NAME + " not found");
+            }
+        } else {
+            Properties props = new Properties();
+            props.load(new FileReader(FILE_NAME));
+            final Map<String, Setting<?>> allConfigFields = getAllConfigFields();
+            for (String key : props.stringPropertyNames()) {
+                try {
+                    if (allConfigFields.containsKey(key)) {
+                        allConfigFields.get(key).setString(props.getProperty(key));
+                    } else {
+                        System.err.println("Discarding unknown setting from properties file: " + key);
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Unable to load " + key + ": " + ex);
+                }
+            }
+        }
+    }
 
-    public static void init(boolean doWizard) throws IOException {
+    void save() throws IOException {
+        final Map<String, Setting<?>> allConfigFields = getAllConfigFields();
+        Properties props = new Properties(allConfigFields.size());
+        for (String key : allConfigFields.keySet()) {
+            final Setting<?> setting = allConfigFields.get(key);
+            final Object val = setting.currentValue;
+            if (val != null && (!setting.special || SAVE_PASS.getValue())) {
+                props.setProperty(key, setting.toUserString());
+            } else {
+                System.out.println("Skip save: " + key);
+            }
+        }
+        props.store(new FileWriter(FILE_NAME), "");
+    }
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
