@@ -53,13 +53,42 @@ public class Main {
         if (con == null && !OPT_NO_CONSOLE.set && !OPT_QUIET.set) {
             System.err.println("No console detected.\n" +
                     "ProxyAuth should be run from command prompt / interactive console, or with /quiet switch.");
-
+            if (launchInteractive()) return;
         }
 
         final Configuration configuration = new Configuration();
         configuration.init(!OPT_RESET.set, !OPT_NO_SAVE.set, OPT_WIZARD.set, OPT_QUIET.set, con);
 
         new ProxyListener(configuration).run();
+    }
+
+    /**
+     * Try to launch ProxyAuth in an interactive console
+     */
+    private static boolean launchInteractive() throws IOException {
+        String os = System.getProperty("os.name");
+        if (os.toLowerCase(Locale.ROOT).startsWith("windows")) {
+            // On Windows, try launching in a new command prompt
+            String java = System.getProperty("java.home");
+            File javaExe = new File(new File(java), "bin\\java.exe");
+            String comspec = System.getenv("comspec");
+            if (javaExe.exists() && new File(comspec).exists()) {
+                // Get classpath from path to main class
+                final String main = Main.class.getCanonicalName();
+                String mainFilename = main.replaceAll("\\.", "/") + ".class";
+                String classPath = ClassLoader.getSystemResource(main.replaceAll("\\.", "/") + ".class")
+                        .getPath().replaceAll("^/|^file:/|!?/?" + mainFilename + "$", "");
+
+                String[] cmd = new String[]{
+                        comspec, "/c", "start", "\"ProxyAuth\"", comspec, "/k", javaExe.getCanonicalPath(),
+                        "-cp", classPath, main, "noconsole"
+                };
+                System.out.println("\nLaunching:" + Arrays.toString(cmd));
+                Runtime.getRuntime().exec(cmd);
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean parseArgs(String[] args) {
