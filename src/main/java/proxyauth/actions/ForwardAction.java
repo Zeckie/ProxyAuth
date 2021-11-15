@@ -11,7 +11,19 @@ import java.net.InetAddress;
  * @author Zeckie
  * Copyright and licence details in Main.java
  */
-public record ForwardAction(InetAddress host, int port, String username, String password) implements Action {
+public class ForwardAction implements Action {
+
+    final InetAddress host;
+    final int port;
+    final String username;
+    final String password;
+
+    public ForwardAction(InetAddress host, int port, String username, String password) {
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+    }
 
     @Override
     public boolean action(ProxyRequest proxyRequest) throws IOException {

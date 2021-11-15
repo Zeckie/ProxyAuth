@@ -4,6 +4,7 @@ import proxyauth.ProxyRequest;
 import proxyauth.Utils;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 /**
@@ -17,24 +18,21 @@ public class EchoAction implements Action {
     @Override
     public boolean action(ProxyRequest proxyRequest) throws IOException {
         boolean success;
-        PrintWriter pw = new PrintWriter(proxyRequest.incomingSocket.getOutputStream(), false, Utils.ASCII);
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(proxyRequest.incomingSocket.getOutputStream(), Utils.ASCII), false);
         String requestLine = proxyRequest.requestHeaders.get(0);
         if (requestLine.startsWith("GET ")) {
-            pw.println("""
-                    HTTP/1.1 200 Echoing your request
-                    Content-Type: text/plain
-                    Connection: close
-                            
-                    Received request + headers:
-                    """);
+            pw.println("HTTP/1.1 200 Echoing your request\r\n" +
+                    "Content-Type: text/plain\r\n" +
+                    "Connection: close\r\n" +
+                    "\r\n" +
+                    "Received request + headers:"
+            );
             success = true;
         } else {
-            pw.println("""
-                    HTTP/1.1 501 Not Implemented
-                    Content-Type: text/plain
-                    Connection: close
-                                
-                    """);
+            pw.println("HTTP/1.1 501 Not Implemented\r\n" +
+                    "Content-Type: text/plain\r\n" +
+                    "Connection: close\r\n\r\n"
+            );
             success = false;
         }
 

@@ -16,10 +16,10 @@ abstract class Converter<A> {
         return val.toString();
     }
 
-    public static final Converter<Boolean> YES_NO = new Converter<>() {
-        static final Set<String> YES = Set.of("yes", "y", "true");
-        static final Set<String> NO = Set.of("no", "n", "false");
+    private static final Set<String> YES = Set.of("yes", "y", "true");
+    private static final Set<String> NO = Set.of("no", "n", "false");
 
+    public static final Converter<Boolean> YES_NO = new Converter<>() {
         @Override
         Boolean fromString(String val) throws InvalidSettingException {
             String lower = val.toLowerCase();

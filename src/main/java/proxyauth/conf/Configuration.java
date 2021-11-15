@@ -115,7 +115,7 @@ public class Configuration {
 
     void save() throws IOException {
         final Map<String, Setting<?>> allConfigFields = getAllConfigFields();
-        Properties props = new Properties(allConfigFields.size());
+        Properties props = new Properties();
         for (String key : allConfigFields.keySet()) {
             final Setting<?> setting = allConfigFields.get(key);
             final Object val = setting.currentValue;

@@ -19,10 +19,17 @@ tasks.test {
 version = "0.1.0"
 group = "com.github.zeckie"
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(16))
+val MIN_JAVA_VER = 9
+if (Runtime.version().feature() < MIN_JAVA_VER) {
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
+        }
     }
+}
+
+tasks.compileJava {
+    options.release.set(MIN_JAVA_VER)
 }
 
 // set main class
