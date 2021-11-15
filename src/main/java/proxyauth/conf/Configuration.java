@@ -128,15 +128,18 @@ public class Configuration {
         props.store(new FileWriter(FILE_NAME), "");
     }
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    public void init(boolean doLoad, boolean doSave, boolean doWizard, boolean quiet, Console con) throws IOException {
+        final Map<String, Setting<?>> allConfigFields = getAllConfigFields();
 
-        final Map<String, Setting<?>> allConfigFields = Configuration.getAllConfigFields();
-        for (String key : allConfigFields.keySet()) {
-            final Setting<?> config = allConfigFields.get(key);
-            if ((config.currentValue == null || doWizard) && config != PASSWORD && config != USERNAME && config != SAVE_PASS) {
-                config.prompt(key, br);
-            }
-        }
+        if (doLoad) load(false);
+        if (!quiet) {
+            {
+                for (String key : allConfigFields.keySet()) {
+                    final Setting<?> config = allConfigFields.get(key);
+                    if ((config.currentValue == null || doWizard) && !config.special) {
+                        config.prompt(key, con);
+                    }
+                }
 
                 if (USERNAME.getValue() == null || PASSWORD.getValue() == null || doWizard) {
                     String currentUser = USERNAME.currentValue;
@@ -145,7 +148,7 @@ public class Configuration {
                     } else {
                         System.out.println("Username (press ENTER for '" + currentUser + "'):");
                     }
-                    String username = br.readLine();
+                    String username = con.readLine();
                     if (username.length() == 0 && currentUser != null) {
                         username = currentUser;
                     }
@@ -161,6 +164,14 @@ public class Configuration {
                 if (doSave) save();
             }
         }
+
+        // Check that all setting have values (eg. if running in quiet mode)
+        for (String key : allConfigFields.keySet()) {
+            if (allConfigFields.get(key).getValue() == null) {
+                throw new InvalidSettingException("Setting " + key + " is not set");
+            }
+        }
+
     }
 
 }
