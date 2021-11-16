@@ -1,3 +1,23 @@
+/*
+ * This file is part of ProxyAuth - https://github.com/Zeckie/ProxyAuth
+ * ProxyAuth is Copyright (c) 2021 Zeckie
+ *
+ * ProxyAuth is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, version 3.
+ *
+ * ProxyAuth is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with ProxyAuth. If you have the source code, this is in a file called
+ * LICENSE. If you have the built jar file, the licence can be viewed by
+ * running "java -jar ProxyAuth-<version>.jar licence".
+ * Otherwise, see <https://www.gnu.org/licenses/>.
+ */
+
 package proxyauth;
 
 import proxyauth.conf.Configuration;
@@ -5,6 +25,7 @@ import proxyauth.conf.Configuration;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -14,7 +35,6 @@ import java.util.Set;
  * A simple proxy server to authenticate to another proxy server.
  *
  * @author Zeckie
- * Copyright and licence details in Main.java
  */
 public class Main {
 
@@ -40,7 +60,11 @@ public class Main {
         }
 
         if (OPT_LICENCE.set) {
-            System.out.println("TODO");
+            System.out.println("-- Start: LICENCE --");
+            try (final InputStream licence = Main.class.getResourceAsStream("LICENSE")) {
+                licence.transferTo(System.out);
+            }
+            System.out.println("-- End: LICENCE --");
             System.exit(0);
         }
 
@@ -113,26 +137,31 @@ public class Main {
     }
 
     static final String COPYRIGHT = "---\n" +
-            "Copyright (C) 2021  Zeckie - https://github.com/Zeckie/\n" +
+            "ProxyAuth (https://github.com/Zeckie/ProxyAuth) is a simple http proxy\n" +
+            "server to authenticate to and forward requests to an upstream proxy server.\n" +
+            "ProxyAuth is Copyright (c) 2021 Zeckie\n" +
             "\n" +
-            "This program is free software: you can redistribute it and/or modify\n" +
-            "it under the terms of the GNU General Public License as published by\n" +
-            "the Free Software Foundation, either version 3 of the License, or\n" +
-            "(at your option) any later version.\n" +
+            "ProxyAuth is free software: you can redistribute it and/or modify it under\n" +
+            "the terms of the GNU General Public License as published by the Free \n" +
+            "Software Foundation, version 3.\n" +
             "\n" +
-            "This program is distributed in the hope that it will be useful,\n" +
-            "but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
-            "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
-            "GNU General Public License for more details.\n" +
+            "ProxyAuth is distributed in the hope that it will be useful, but WITHOUT\n" +
+            "ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or\n" +
+            "FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License\n" +
+            " for more details.\n" +
             "\n" +
-            "You should have received a copy of the GNU General Public License\n" +
-            "along with this program.  If not, see <https://www.gnu.org/licenses/>.\n" +
-            "---\n";
+            "You should have received a copy of the GNU General Public License along\n" +
+            "with ProxyAuth. If you have the source code, this is in a file called\n" +
+            "LICENSE. If you have the built jar file, the licence can be viewed by\n" +
+            "running \"java -jar ProxyAuth-<version>.jar licence\".\n" +
+            "Otherwise, see <https://www.gnu.org/licenses/>." +
+            "\n---\n";
     static final String SHORT_HELP = "For help (including configuration and licence) run with command line switch /? or --help";
     static final String LONG_HELP = "\nFor more, see https://github.com/Zeckie/ProxyAuth\n";
 
     static final Option OPT_HELP = new Option("Displays this list of commands (then quits)", "help", "" /* eg. for "-?" or "/?" */, "h");
-    static final Option OPT_LICENCE = new Option("Display copyright and licence (then quits)", "licence", "l", "copyright", "gpl");
+    static final Option OPT_LICENCE = new Option("Display copyright and licence (then quits)", "licence", "license", "l",
+            "copyright", "copyleft", "gpl");
     static final Option OPT_WIZARD = new Option("Runs configuration wizard", "wizard", "config", "w");
     static final Option OPT_RESET = new Option("Skips loading of configuration file", "reset", "noload", "r");
     static final Option OPT_NO_SAVE = new Option("Skips saving of configuration file", "nosave", "n");
