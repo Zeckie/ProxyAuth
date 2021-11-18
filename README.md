@@ -17,17 +17,61 @@ ProxyAuth is not intended to be a general purpose proxy server, and does not cac
 
 ## Dependencies
 
-Java (version 16 or later). No third-party libraries required for execution.
+Java (version 9 or later). No third-party libraries required for execution.
 
 ## Running
-
-TODO - depends on https://github.com/Zeckie/ProxyAuth/issues/6 (configuration)
 
 ProxyAuth does not have a GUI, and should be run from a console / shell such as Command Prompt (`cmd.exe`), `bash`, or
 even Powershell.
 
 ```
 java -jar ProxyAuth-0.1.0.jar
+```
+
+The first time it is run, ProxyAuth will prompt for:
+
+- UPSTREAM_PROXY_HOST (Name or IP address of the upstream proxy server to send requests to)
+- USERNAME (Username for authenticating to upstream proxy server)
+- PASSWORD (Password for authenticating to upstream proxy server)
+- SAVE_PASS (Should password be saved to configuration file?)
+
+By default, it will listen on local address 127.0.0.127 port 8080.
+
+```
+Listening ServerSocket[addr=/127.0.0.127,localport=8080]
+```
+
+You can now configure other applications to use this proxy.
+
+### Configuring
+
+The configuration file `proxyauth.properties` is created automatically in the working directory.
+
+To run the configuration wizard:
+
+```
+java -jar ProxyAuth-0.1.0.jar -wizard
+```
+
+Which will show each setting, including a description of what it does. eg.
+
+```
+LISTEN_BACKLOG: Number of incoming connections that can be queued. Setting this too low will result in connections being refused
+
+Enter LISTEN_BACKLOG (press ENTER for 50):
+
+
+
+STOP_ON_PROXY_AUTH_ERROR: Immediately stop on http error 407, to prevent account from being locked due to multiple attempts with wrong password
+
+Enter STOP_ON_PROXY_AUTH_ERROR (press ENTER for Yes):
+
+
+
+LISTEN_PORT: TCP port to listen on. Port 8080 is often used.
+
+Enter LISTEN_PORT (press ENTER for 8080):
+...
 ```
 
 ## Copyright and Licence
