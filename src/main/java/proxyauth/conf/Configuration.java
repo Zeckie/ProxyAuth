@@ -53,6 +53,9 @@ public class Configuration {
             null, null, null);
     public final Setting<Integer> MAX_ACTIVE_REQUESTS = new Setting<>(20, Converter.INTEGER,
             false, "The number of concurrent requests that can be processed. Higher values will use more resources.", null, 1, null);
+    public final Setting<Boolean> CONNECTION_CLOSE = new Setting<>(true, Converter.YES_NO, false,
+            "Add headers to indicate the connection needs to be closed. Should be set to Yes to work around issue 23.",
+            null, null, null);
 
     /* Addresses */
     public final Setting<String> LISTEN_ADDRESS = new Setting<>("127.0.0.127", Converter.STRING,
