@@ -62,14 +62,25 @@ public class ForwardRequest implements StatusListener<PassThrough> {
     }
 
     /**
-     * Return a copy of headers, with the configured proxy authorization
-     *
-     * @return
+     * @param headers HTTP request headers
+     * @return a copy of headers, with the configured proxy authorization
      */
     public List<String> processAuthHeaders(List<String> headers) {
         headers = new ArrayList<String>(headers);
         headers.removeIf(s -> s.toLowerCase().startsWith("proxy-authorization:"));
         headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username + ":" + action.password)), ASCII));
+        return headers;
+    }
+
+    /**
+     * @param headers
+     * @return a copy of headers, modified to stop keep-alive
+     */
+    public List<String> processKeepAlive(List<String> headers) {
+        headers = new ArrayList<String>(headers);
+        headers.removeIf(s -> s.toLowerCase().startsWith("connection:"));
+        headers.removeIf(s -> s.toLowerCase().startsWith("keep-alive:"));
+        headers.add("Connection: Close");
         return headers;
     }
 
@@ -85,7 +96,12 @@ public class ForwardRequest implements StatusListener<PassThrough> {
 
             if (proxyRequest.parent.config.DEBUG.getValue()) System.out.println("upstream socket = " + upstream);
 
-            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true, processAuthHeaders(proxyRequest.requestHeaders), proxyRequest.parent.config);
+            List<String> headers = processAuthHeaders(proxyRequest.requestHeaders);
+            if (proxyRequest.parent.config.CONNECTION_CLOSE.getValue()) {
+                headers = processKeepAlive(headers);
+            }
+            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, upstream,
+                    true, headers, proxyRequest.parent.config);
             upload.start();
 
             proxyRequest.responseHeaders = proxyRequest.processHeaders(upstream.getInputStream());
@@ -102,14 +118,19 @@ public class ForwardRequest implements StatusListener<PassThrough> {
                 }
             }
 
+            List<String> respHeaders = proxyRequest.responseHeaders;
+            if (proxyRequest.parent.config.CONNECTION_CLOSE.getValue()) {
+                respHeaders = processKeepAlive(respHeaders);
+            }
+
             download = new PassThrough(
                     this, upstream.getInputStream(),
                     new BufferedOutputStream(
                             proxyRequest.incomingSocket.getOutputStream(), proxyRequest.parent.config.BUF_SIZE.getValue()
                     ),
-                    false,
-                    proxyRequest.responseHeaders,
-                    proxyRequest.parent.config);
+                    proxyRequest.incomingSocket, false, respHeaders, proxyRequest.parent.config
+            );
+
 
             download.start();
             try {

@@ -53,6 +53,9 @@ public class Configuration {
             null, null, null);
     public final Setting<Integer> MAX_ACTIVE_REQUESTS = new Setting<>(20, Converter.INTEGER,
             false, "The number of concurrent requests that can be processed. Higher values will use more resources.", null, 1, null);
+    public final Setting<Boolean> CONNECTION_CLOSE = new Setting<>(true, Converter.YES_NO, false,
+            "Add headers to indicate the connection needs to be closed. Should be set to Yes to work around issue 23.",
+            null, null, null);
 
     /* Addresses */
     public final Setting<String> LISTEN_ADDRESS = new Setting<>("127.0.0.127", Converter.STRING,
@@ -70,7 +73,7 @@ public class Configuration {
                 }
             }, null, null);
     public final Setting<Integer> LISTEN_PORT = new Setting<>(8080, Converter.INTEGER,
-            false, "TCP port to listen on. Port 8080 is often used.", null, 1, 65535);
+            false, "TCP port to listen on. Port 8080 is often used.", null, 0, 65535);
     public final Setting<String> UPSTREAM_PROXY_HOST = new Setting<>(null, Converter.STRING,
             false, "Name or IP address of the upstream proxy server to send requests to", null, null, null);
     public final Setting<Integer> UPSTREAM_PROXY_PORT = new Setting<>(8080, Converter.INTEGER,
