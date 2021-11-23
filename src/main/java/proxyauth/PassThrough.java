@@ -25,6 +25,7 @@ import proxyauth.conf.Configuration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,6 +39,7 @@ import static proxyauth.Utils.ascii;
  */
 public class PassThrough extends Thread {
     public static final AtomicLong THREAD_COUNTER = new AtomicLong(0);
+    private final Socket toShutdownOutput;
 
     InputStream is;
     OutputStream os;
@@ -46,10 +48,23 @@ public class PassThrough extends Thread {
     public final List<String> headers;
     final Configuration config;
 
-    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, boolean isUp, List<String> headers, Configuration config) {
+    /**
+     * Write the supplied http headers, then copy all bytes from input to output
+     *
+     * @param listener         Listener to notify when finished
+     * @param is               stream to read bytes from
+     * @param os               stream to write bytes to
+     * @param toShutdownOutput (Optional) socket to shut down output of when done
+     * @param isUp             direction (is this uploading?)
+     * @param headers          list of http headers
+     * @param config           configuration
+     */
+    public PassThrough(StatusListener<PassThrough> listener, InputStream is, OutputStream os, Socket toShutdownOutput,
+                       boolean isUp, List<String> headers, Configuration config) {
         super("PassThrough-" + THREAD_COUNTER.incrementAndGet() + (isUp ? "-up" : "-down"));
         this.is = is;
         this.os = os;
+        this.toShutdownOutput = toShutdownOutput;
         this.listener = listener;
         this.headers = headers;
         this.config = config;
@@ -75,8 +90,7 @@ public class PassThrough extends Thread {
                     if (is.available() == 0) os.flush();
                     int nxt = is.read();
                     if (nxt == -1) {
-                        is.close();
-                        os.close();
+                        if (toShutdownOutput!=null) toShutdownOutput.shutdownOutput();
                         System.out.println(Thread.currentThread() + " Finished. Bytes=" + bytesTransferred.get());
                         return;
                     }

@@ -100,8 +100,8 @@ public class ForwardRequest implements StatusListener<PassThrough> {
             if (proxyRequest.parent.config.CONNECTION_CLOSE.getValue()) {
                 headers = processKeepAlive(headers);
             }
-            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true,
-                    headers, proxyRequest.parent.config);
+            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, upstream,
+                    true, headers, proxyRequest.parent.config);
             upload.start();
 
             proxyRequest.responseHeaders = proxyRequest.processHeaders(upstream.getInputStream());
@@ -128,7 +128,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
                     new BufferedOutputStream(
                             proxyRequest.incomingSocket.getOutputStream(), proxyRequest.parent.config.BUF_SIZE.getValue()
                     ),
-                    false, respHeaders, proxyRequest.parent.config
+                    proxyRequest.incomingSocket, false, respHeaders, proxyRequest.parent.config
             );
 
 
