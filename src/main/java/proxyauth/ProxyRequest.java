@@ -1,26 +1,46 @@
+/*
+ * This file is part of ProxyAuth - https://github.com/Zeckie/ProxyAuth
+ * ProxyAuth is Copyright (c) 2021 Zeckie
+ *
+ * ProxyAuth is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, version 3.
+ *
+ * ProxyAuth is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with ProxyAuth. If you have the source code, this is in a file called
+ * LICENSE. If you have the built jar file, the licence can be viewed by
+ * running "java -jar ProxyAuth-<version>.jar licence".
+ * Otherwise, see <https://www.gnu.org/licenses/>.
+ */
+
 package proxyauth;
+
+import proxyauth.actions.ForwardAction;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static proxyauth.Configuration.DEBUG;
-import static proxyauth.Configuration.SOCKET_TIMEOUT;
 import static proxyauth.Utils.ASCII;
 
 /**
  * Handles a single request
  *
  * @author Zeckie
- * Copyright and licence details in Main.java
  */
 public class ProxyRequest extends Thread {
     public final Socket incomingSocket;
-    final ProxyListener parent;
+    public final ProxyListener parent;
 
     /**
      * http headers received, including the request line
@@ -57,10 +77,14 @@ public class ProxyRequest extends Thread {
         boolean success = false;
         try (incomingSocket) {
             System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
-            incomingSocket.setSoTimeout(SOCKET_TIMEOUT);
+            incomingSocket.setSoTimeout(parent.config.SOCKET_TIMEOUT.getValue());
             requestHeaders = processHeaders(incomingSocket.getInputStream());
 
-            success = Configuration.INITIAL_ACTION.action(this);
+            success = new ForwardAction(
+                    InetAddress.getByName(parent.config.UPSTREAM_PROXY_HOST.getValue()),
+                    parent.config.UPSTREAM_PROXY_PORT.getValue(),
+                    parent.config.USERNAME.getValue(), parent.config.PASSWORD.getValue()
+            ).action(this);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,8 +93,9 @@ public class ProxyRequest extends Thread {
         }
     }
 
-    public static List<String> processHeaders(InputStream inputStream) throws IOException {
-        byte[] buf = new byte[Configuration.BUF_SIZE];
+    public List<String> processHeaders(InputStream inputStream) throws IOException {
+        final int bufferSize = parent.config.BUF_SIZE.getValue();
+        byte[] buf = new byte[bufferSize];
         int bytes_read = 0;
 
         // read http request headers (ends with 2x CRLF)
@@ -78,12 +103,12 @@ public class ProxyRequest extends Thread {
         while (bytes_read < 4 || !Arrays.equals(buf, bytes_read - 4, bytes_read, end_headers, 0, 4)) {
             int byte_read = inputStream.read();
             if (byte_read == -1) throw new IOException("End of stream reached before http request headers read");
-            if (bytes_read == Configuration.BUF_SIZE)
+            if (bytes_read == bufferSize)
                 throw new IOException("Buffer full before http request headers read");
             buf[bytes_read++] = (byte) byte_read;
         }
 
-        if (DEBUG) {
+        if (parent.config.DEBUG.getValue()) {
             System.out.println("--- Headers ---");
             System.out.write(buf, 0, bytes_read);
             System.out.println("--- End: Headers ---");

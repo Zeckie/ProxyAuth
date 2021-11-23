@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- Forward to Proxy ()
 - Listen for incoming proxy requests
-- Echo headers back in response to GET requests
+- Forward requests to upstream proxy server
+- Add (or replace) proxy authentication headers
+- Console based configuration wizard

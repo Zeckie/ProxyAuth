@@ -1,6 +1,25 @@
+/*
+ * This file is part of ProxyAuth - https://github.com/Zeckie/ProxyAuth
+ * ProxyAuth is Copyright (c) 2021 Zeckie
+ *
+ * ProxyAuth is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, version 3.
+ *
+ * ProxyAuth is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *  for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with ProxyAuth. If you have the source code, this is in a file called
+ * LICENSE. If you have the built jar file, the licence can be viewed by
+ * running "java -jar ProxyAuth-<version>.jar licence".
+ * Otherwise, see <https://www.gnu.org/licenses/>.
+ */
+
 package proxyauth.actions;
 
-import proxyauth.Configuration;
 import proxyauth.PassThrough;
 import proxyauth.ProxyRequest;
 import proxyauth.StatusListener;
@@ -14,15 +33,14 @@ import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static proxyauth.Configuration.SOCKET_TIMEOUT;
 import static proxyauth.Utils.ASCII;
 import static proxyauth.Utils.ascii;
+
 
 /**
  * Forwards a request to a proxy server
  *
  * @author Zeckie
- * Copyright and licence details in Main.java
  */
 public class ForwardRequest implements StatusListener<PassThrough> {
     static final Pattern PROXY_AUTH_ERROR = Pattern.compile("^HTTP/\\d.\\d 407 .*");
@@ -51,7 +69,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
     public List<String> processAuthHeaders(List<String> headers) {
         headers = new ArrayList<String>(headers);
         headers.removeIf(s -> s.toLowerCase().startsWith("proxy-authorization:"));
-        headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username() + ":" + action.password())), ASCII));
+        headers.add("Proxy-Authorization: Basic " + new String(Base64.getEncoder().encode(ascii(action.username + ":" + action.password)), ASCII));
         return headers;
     }
 
@@ -60,19 +78,19 @@ public class ForwardRequest implements StatusListener<PassThrough> {
         PassThrough download;
 
         try (Socket upstream = new Socket()) {
-            upstream.setSoTimeout(SOCKET_TIMEOUT);
-            upstream.connect(new InetSocketAddress(action.host(), action.port()), SOCKET_TIMEOUT);
+            upstream.setSoTimeout(proxyRequest.parent.config.SOCKET_TIMEOUT.getValue());
+            upstream.connect(new InetSocketAddress(action.host, action.port), proxyRequest.parent.config.SOCKET_TIMEOUT.getValue());
             this.upstreamSocket = upstream;
-            BufferedOutputStream outputStream = new BufferedOutputStream(upstream.getOutputStream(), Configuration.BUF_SIZE);
+            BufferedOutputStream outputStream = new BufferedOutputStream(upstream.getOutputStream(), proxyRequest.parent.config.BUF_SIZE.getValue());
 
-            if (Configuration.DEBUG) System.out.println("upstream socket = " + upstream);
+            if (proxyRequest.parent.config.DEBUG.getValue()) System.out.println("upstream socket = " + upstream);
 
-            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true, processAuthHeaders(proxyRequest.requestHeaders));
+            upload = new PassThrough(this, proxyRequest.incomingSocket.getInputStream(), outputStream, true, processAuthHeaders(proxyRequest.requestHeaders), proxyRequest.parent.config);
             upload.start();
 
-            proxyRequest.responseHeaders = ProxyRequest.processHeaders(upstream.getInputStream());
+            proxyRequest.responseHeaders = proxyRequest.processHeaders(upstream.getInputStream());
 
-            if (Configuration.STOP_ON_PROXY_AUTH_ERROR) {
+            if (proxyRequest.parent.config.STOP_ON_PROXY_AUTH_ERROR.getValue()) {
                 final String line = proxyRequest.responseHeaders.get(0);
                 if (PROXY_AUTH_ERROR.matcher(line).matches()) {
                     System.err.println("STOPPING due to proxy auth error: " + line);
@@ -86,10 +104,12 @@ public class ForwardRequest implements StatusListener<PassThrough> {
 
             download = new PassThrough(
                     this, upstream.getInputStream(),
-                    new BufferedOutputStream(proxyRequest.incomingSocket.getOutputStream(), Configuration.BUF_SIZE),
+                    new BufferedOutputStream(
+                            proxyRequest.incomingSocket.getOutputStream(), proxyRequest.parent.config.BUF_SIZE.getValue()
+                    ),
                     false,
-                    proxyRequest.responseHeaders
-            );
+                    proxyRequest.responseHeaders,
+                    proxyRequest.parent.config);
 
             download.start();
             try {
@@ -103,7 +123,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
         }
         synchronized (this) {
             System.out.println(Thread.currentThread() + " Finished");
-            if (Configuration.DEBUG)
+            if (proxyRequest.parent.config.DEBUG.getValue())
                 System.out.println(
                         "--Finished--\n"
                                 + " - any errors: " + anyErrors + "\n"
