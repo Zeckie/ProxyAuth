@@ -37,7 +37,7 @@ gradlew build
 ./gradlew build
 ```
 
-This will create the jar file in `build/libs` (e.g. `build/libs/ProxyAuth-0.1.0.jar`)
+This will create the jar file in `build/libs` (e.g. `build/libs/ProxyAuth-0.1.1.jar`)
 
 ### Without Gradle
 

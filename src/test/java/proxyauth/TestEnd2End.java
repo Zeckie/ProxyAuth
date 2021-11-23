@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests multiple components, through use of mock server
+ * Tests multiple components, through use of mock proxy server
  */
 public class TestEnd2End {
 
