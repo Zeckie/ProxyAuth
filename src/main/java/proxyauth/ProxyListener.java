@@ -22,6 +22,7 @@ package proxyauth;
 
 import proxyauth.conf.Configuration;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -34,7 +35,7 @@ import java.util.Set;
  *
  * @author Zeckie
  */
-public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
+public class ProxyListener implements Runnable, StatusListener<ProxyRequest>, Closeable {
 
     /**
      * ThreadGroup containing threads that we start
@@ -53,6 +54,7 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
         config = configuration;
     }
 
+    private volatile ServerSocket incoming;
 
     @Override
     public void run() {
@@ -64,6 +66,7 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
                         InetAddress.getByName(config.LISTEN_ADDRESS.getValue())
                 )
         ) {
+            this.incoming = incoming;
             System.out.println("Listening " + incoming);
 
             //noinspection InfiniteLoopStatement (CTRL+C to stop)
@@ -103,5 +106,18 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest> {
 
             activeRequests.notifyAll();
         }
+    }
+
+    /**
+     * currently used only for testing - close the listening socket
+     */
+    @Override
+    public void close() throws IOException {
+        if (incoming != null) incoming.close();
+    }
+
+    public Integer getLocalPort() {
+        if (incoming != null) return incoming.getLocalPort();
+        return null;
     }
 }

@@ -73,7 +73,7 @@ public class Configuration {
                 }
             }, null, null);
     public final Setting<Integer> LISTEN_PORT = new Setting<>(8080, Converter.INTEGER,
-            false, "TCP port to listen on. Port 8080 is often used.", null, 1, 65535);
+            false, "TCP port to listen on. Port 8080 is often used.", null, 0, 65535);
     public final Setting<String> UPSTREAM_PROXY_HOST = new Setting<>(null, Converter.STRING,
             false, "Name or IP address of the upstream proxy server to send requests to", null, null, null);
     public final Setting<Integer> UPSTREAM_PROXY_PORT = new Setting<>(8080, Converter.INTEGER,
