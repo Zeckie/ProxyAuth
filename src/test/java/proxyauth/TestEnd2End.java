@@ -20,8 +20,9 @@
 
 package proxyauth;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import proxyauth.conf.Configuration;
 
 import java.io.Closeable;
@@ -38,7 +39,7 @@ import java.util.List;
 /**
  * Tests multiple components, through use of mock server
  */
-public class End2End {
+public class TestEnd2End {
 
 
     public static final Charset ASCII = StandardCharsets.US_ASCII;
@@ -90,7 +91,7 @@ public class End2End {
             final Socket acceptedSocket = serverSocket.accept();
             toClose.add(acceptedSocket);
             String received = new String(acceptedSocket.getInputStream().readAllBytes(), ASCII);
-            Assert.assertEquals(expectedRequest, received);
+            Assertions.assertEquals(expectedRequest, received);
 
             // Send response back
             final OutputStream acceptedSocketOutputStream = acceptedSocket.getOutputStream();
@@ -100,7 +101,7 @@ public class End2End {
 
             // Verify response
             received = new String(clientSocket.getInputStream().readAllBytes(), ASCII);
-            Assert.assertEquals(expectedResponse, received);
+            Assertions.assertEquals(expectedResponse, received);
             
         } finally {
             System.err.println("Cleanup");
@@ -110,7 +111,8 @@ public class End2End {
         }
     }
 
-    @Test(timeout = 10000L)
+    @Timeout(10000L)
+    @Test
     public void withClose() throws IOException, InterruptedException {
         doE2ETest(
                 true,
@@ -124,7 +126,8 @@ public class End2End {
         );
     }
 
-    @Test(timeout = 10000L)
+    @Timeout(10000L)
+    @Test
     public void withoutClose() throws IOException, InterruptedException {
         doE2ETest(
                 false,
