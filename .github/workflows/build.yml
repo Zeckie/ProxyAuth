@@ -26,41 +26,10 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1.0.4
 
-  # Run test Gradle task
-  test:
-    name: Test
-    needs: gradleValidation
-    runs-on: ubuntu-latest
-    steps:
-
-      # Check out current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v2.4.0
-
-      # Setup Java 16 environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: 16
-          distribution: zulu
-          cache: gradle
-
-      # Run tests
-      - name: Run Tests
-        run: ./gradlew test
-
-      # Store test report an artifact for downloading
-      - name: Upload Test Report
-        uses: actions/upload-artifact@v2.2.4
-        with:
-          name: Test Report
-          path: ./build/reports/tests/
-
-  # Build application with build Gradle task and provide the artifact for the next workflow jobs
-  # Requires test job to be passed
+  # Build and test application with build Gradle task and provide the artifact for the next workflow jobs
   build:
     name: Build
-    needs: test
+    needs: gradleValidation
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.properties.outputs.version }}
@@ -101,12 +70,21 @@ jobs:
       - name: Build
         run: ./gradlew build
 
-      # Store built jar as an artifact for downloading
-      - name: Upload artifacts
+      # Store built jar as an artefact for downloading
+      - name: Upload build artefacts
         uses: actions/upload-artifact@v2.2.4
         with:
           name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
           path: ./build/libs/*
+
+      # Store test reports as an artefact
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: "test-reports"
+          path: ./build/reports/*
+          retention-days: 7
 
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
