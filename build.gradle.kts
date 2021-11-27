@@ -1,6 +1,5 @@
 plugins {
     java
-    application
     id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -49,14 +48,8 @@ if (Runtime.version().feature() < MIN_JAVA_VER) {
 }
 
 // set main class
-"proxyauth.Main".let { main ->
-    application {
-        mainClass.set(main)
-    }
-
-    tasks.jar {
-        manifest.attributes["Main-Class"] = main
-    }
+tasks.jar {
+    manifest.attributes["Main-Class"] = "proxyauth.Main"
 }
 
 changelog {
