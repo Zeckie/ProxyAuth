@@ -20,12 +20,14 @@
 
 package proxyauth.conf;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestConfiguration {
     Configuration config = new Configuration();
@@ -43,9 +45,9 @@ public class TestConfiguration {
         assertEquals(config.LISTEN_ADDRESS.getValue(), "127.0.0.1");
     }
 
-    @Test(expected = InvalidSettingException.class)
+    @Test
     public void testInvalidListenAddress() {
         // This should not be a local address
-        config.LISTEN_ADDRESS.setString("1.1.1.1");
+        assertThrows(InvalidSettingException.class, () -> config.LISTEN_ADDRESS.setString("1.1.1.1"));
     }
 }

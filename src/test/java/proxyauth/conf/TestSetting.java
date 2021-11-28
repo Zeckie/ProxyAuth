@@ -20,8 +20,11 @@
 
 package proxyauth.conf;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Zeckie
@@ -30,22 +33,26 @@ public class TestSetting {
     @Test
     public void testSettingInt() {
         Setting<Integer> setting = new Setting<>(5, Converter.INTEGER, false, "Test number", null, 0, 100);
-        Assert.assertEquals((int) setting.currentValue, 5);
+        Assertions.assertEquals((int) setting.currentValue, 5);
         setting.setString("3");
-        Assert.assertEquals((int) setting.currentValue, 3);
-        Assert.assertEquals("3", setting.toUserString());
+        Assertions.assertEquals((int) setting.currentValue, 3);
+        Assertions.assertEquals("3", setting.toUserString());
     }
 
-    @Test(expected = InvalidSettingException.class)
+    @Test
     public void testInvalidInt() {
-        Setting<Integer> setting = new Setting<>(5, Converter.INTEGER, false, "Test number", null, 0, 100);
-        setting.setString("Foo");
+        assertThrows(InvalidSettingException.class,  () -> {
+            Setting<Integer> setting = new Setting<>(5, Converter.INTEGER, false, "Test number", null, 0, 100);
+            setting.setString("Foo");
+        });
     }
 
-    @Test(expected = InvalidSettingException.class)
+    @Test
     public void testInvalidYesNo() {
-        Setting<Boolean> setting = new Setting<>(null, Converter.YES_NO, false, "Test bool", null, null, null);
-        setting.setString("Foo");
+        assertThrows(InvalidSettingException.class,  () -> {
+            Setting<Boolean> setting = new Setting<>(null, Converter.YES_NO, false, "Test bool", null, null, null);
+            setting.setString("Foo");
+        });
     }
 
 }
