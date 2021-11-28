@@ -26,6 +26,29 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1.0.4
 
+  # Build using Java 8 to check Gradle toolchain / version check
+  java8:
+    name: Check Gradle Java 8
+    needs: gradleValidation
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v2.4.0
+
+      # Setup Java 8 environment for the next steps
+      - name: Setup Java 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: zulu
+          cache: gradle
+
+      # Build artifact using build Gradle task
+      - name: Build
+        run: ./gradlew build
+
   # Build and test application with build Gradle task and provide the artifact for the next workflow jobs
   build:
     name: Build
@@ -42,7 +65,7 @@ jobs:
         uses: actions/checkout@v2.4.0
 
       # Setup Java 16 environment for the next steps
-      - name: Setup Java
+      - name: Setup Java 16
         uses: actions/setup-java@v2
         with:
           java-version: 16
