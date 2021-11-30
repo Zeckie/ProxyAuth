@@ -37,7 +37,7 @@ gradlew build
 ./gradlew build
 ```
 
-This will create the jar file in `build/libs` (e.g. `build/libs/ProxyAuth-0.1.0.jar`)
+This will create the jar file in `build/libs` (e.g. `build/libs/ProxyAuth-0.1.1.jar`)
 
 ### Without Gradle
 
@@ -55,8 +55,11 @@ java -cp bin proxyauth.Main
 
 ## Design
 
-The main language of the project is Java (NOT Kotlin!). Other languages should only be used in cases where Java cannot
-be used.
+The main natural language of the project is English (Australian). However, some of the components we use, such as the
+licence, and many of the APIs are in English (USA).
+
+The main programming language of the project is Java (NOT Kotlin!). Other programming (or scripting) languages should
+only be used in cases where Java cannot be used.
 
 ### Dependencies
 

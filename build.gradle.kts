@@ -1,6 +1,5 @@
 plugins {
     java
-    application
     id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -17,19 +16,23 @@ tasks.test {
     useJUnitPlatform()
 }
 
-version = "0.1.0"
+version = "0.1.1"
 group = "com.github.zeckie"
 
+// Work out current java version
 val MIN_JAVA_VER = 9
+val fullVersion = System.getProperty("java.version")
+val majorVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf('.')))
+System.out.println("Java major version: " + majorVersion)
 
-if (Runtime.version().feature() < MIN_JAVA_VER) {
+if (majorVersion < MIN_JAVA_VER) {
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
         }
     }
 } else {
-    if (Runtime.version().feature() > 9) {
+    if (majorVersion > 9) {
         // Compile for minimum supported java version
         // skip for java 9 due to https://bugs.openjdk.java.net/browse/JDK-8139607
         tasks.withType<JavaCompile> {
@@ -49,14 +52,8 @@ if (Runtime.version().feature() < MIN_JAVA_VER) {
 }
 
 // set main class
-"proxyauth.Main".let { main ->
-    application {
-        mainClass.set(main)
-    }
-
-    tasks.jar {
-        manifest.attributes["Main-Class"] = main
-    }
+tasks.jar {
+    manifest.attributes["Main-Class"] = "proxyauth.Main"
 }
 
 changelog {

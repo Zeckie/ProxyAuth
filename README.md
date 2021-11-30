@@ -25,7 +25,7 @@ ProxyAuth does not have a GUI, and should be run from a console / shell such as 
 even Powershell.
 
 ```
-java -jar ProxyAuth-0.1.0.jar
+java -jar ProxyAuth-0.1.1.jar
 ```
 
 The first time it is run, ProxyAuth will prompt for:
@@ -50,7 +50,7 @@ The configuration file `proxyauth.properties` is created automatically in the wo
 To run the configuration wizard:
 
 ```
-java -jar ProxyAuth-0.1.0.jar -wizard
+java -jar ProxyAuth-0.1.1.jar -wizard
 ```
 
 Which will show each setting, including a description of what it does. eg.
