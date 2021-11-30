@@ -45,11 +45,11 @@ jobs:
           distribution: zulu
           cache: gradle
 
-      # Build artifact using build Gradle task
+      # Build artefact using build Gradle task
       - name: Build
         run: ./gradlew build
 
-  # Build and test application with build Gradle task and provide the artifact for the next workflow jobs
+  # Build and test application with build Gradle task and provide the artefact for the next workflow jobs
   build:
     name: Build
     needs: gradleValidation
@@ -89,7 +89,7 @@ jobs:
           echo "::set-output name=name::$NAME"
           echo "::set-output name=changelog::$CHANGELOG"
 
-      # Build artifact using build Gradle task
+      # Build artefact using build Gradle task
       - name: Build
         run: ./gradlew build
 
@@ -142,7 +142,7 @@ jobs:
           release_name: v${{ needs.build.outputs.version }}
           body: ${{ needs.build.outputs.changelog }}
           draft: true
-      - name: Download Artifact
+      - name: Download Artefact
         uses: actions/download-artifact@v2.0.10
         with:
           name: "${{ needs.build.outputs.name }} - ${{ needs.build.outputs.version }}"
