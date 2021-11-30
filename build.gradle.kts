@@ -8,29 +8,30 @@ repositories {
 }
 
 dependencies {
-    implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    implementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-tasks.test {
-    useJUnitPlatform()
+tasks.withType<Test> {
+    useJUnitPlatform() // JUnit 5
 }
 
 version = "0.1.1"
 group = "com.github.zeckie"
 
-// Work out current java version
+/*
+* Work out current java version
+* Note: versions prior to JEP223 (Java 9) had version numbers starting with "1." so
+* will be counted as major version 1.
+*/
 val MIN_JAVA_VER = 9
 val fullVersion = System.getProperty("java.version")
 val majorVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf('.')))
 System.out.println("Java major version: " + majorVersion)
 
+
 if (majorVersion < MIN_JAVA_VER) {
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
-        }
-    }
+    java.toolchain.languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
 } else {
     if (majorVersion > 9) {
         // Compile for minimum supported java version
@@ -46,7 +47,7 @@ if (majorVersion < MIN_JAVA_VER) {
             languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
         })
     }
-    tasks.build {
+    tasks.check {
         dependsOn("testsMinJava")
     }
 }
