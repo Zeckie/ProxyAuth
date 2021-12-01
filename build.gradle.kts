@@ -43,6 +43,9 @@ if (majorVersion < MIN_JAVA_VER) {
 
     // Test on minimum supported java version
     tasks.register<Test>("testsMinJava") {
+        description = "Run test suite with ${project.name}'s minimum supported java version ($MIN_JAVA_VER). " +
+                "Checks that the code is compatible with, and compiled with the correct options to be run on that version"
+        group = "verification"
         javaLauncher.set(javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
         })
