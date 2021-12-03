@@ -1,0 +1,6 @@
+<component name="CopyrightManager">
+  <copyright>
+    <option name="notice" value="This file is part of ProxyAuth - https://github.com/Zeckie/ProxyAuth&#10;ProxyAuth is Copyright (c) &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;)&amp;#36;today.year Zeckie&#10;&#10;ProxyAuth is free software: you can redistribute it and/or modify it under&#10;the terms of the GNU General Public License as published by the Free &#10;Software Foundation, version 3.&#10;&#10;ProxyAuth is distributed in the hope that it will be useful, but WITHOUT&#10;ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or&#10;FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License&#10; for more details.&#10;&#10;You should have received a copy of the GNU General Public License along&#10;with ProxyAuth. If you have the source code, this is in a file called&#10;LICENSE. If you have the built jar file, the licence can be viewed by&#10;running &quot;java -jar ProxyAuth-&lt;version&gt;.jar licence&quot;.&#10;Otherwise, see &lt;https://www.gnu.org/licenses/&gt;." />
+    <option name="myName" value="Zeckie" />
+  </copyright>
+</component>
