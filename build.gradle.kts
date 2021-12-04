@@ -18,6 +18,9 @@
  * Otherwise, see <https://www.gnu.org/licenses/>.
  */
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 plugins {
     java
     id("org.jetbrains.changelog") version "1.3.1"
@@ -44,13 +47,14 @@ group = "com.github.zeckie"
 * Note: versions prior to JEP223 (Java 9) had version numbers starting with "1." so
 * will be counted as major version 1.
 */
+@Suppress("PropertyName") // IDEA doesn't recognise MIN_JAVA_VER as a constant
 val MIN_JAVA_VER = 9
-val fullVersion = System.getProperty("java.version")
-val majorVersion = Integer.parseInt(fullVersion.substring(0, fullVersion.indexOf('.')))
-System.out.println("Java major version: " + majorVersion)
-
+val fullVersion: String = System.getProperty("java.version")
+val matchMajor: Matcher = Pattern.compile("^\\d+").matcher(fullVersion)
+val majorVersion = if (matchMajor.find()) Integer.parseInt(matchMajor.group()) else 0
 
 if (majorVersion < MIN_JAVA_VER) {
+    println("Using java toolchain, as java version ($fullVersion) is less than minimum ($MIN_JAVA_VER)")
     java.toolchain.languageVersion.set(JavaLanguageVersion.of(MIN_JAVA_VER))
 } else {
     if (majorVersion > 9) {
