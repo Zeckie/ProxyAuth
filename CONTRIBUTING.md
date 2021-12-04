@@ -21,9 +21,11 @@ to [configure Gradle's proxy settings](https://docs.gradle.org/current/userguide
 
 The project is configured to use [Gradle Toolchains](https://docs.gradle.org/current/userguide/toolchains.html), so any
 [supported Java version](https://docs.gradle.org/current/userguide/compatibility.html) will be sufficient to complete
-the build.
+the build. If Gradle's auto provisioning is disabled, tasks (such as `testsMinJava`, that requires Java 9.x) will fail
+if a compatible java installation is not found. Other tasks such as `jar` and `test` can be run with later java
+versions.
 
-To compile, execute tests, and generate the executable jar, run:
+To do a full build (including compile, execute tests, and generate the executable jar), run:
 
 - On Windows:
 
