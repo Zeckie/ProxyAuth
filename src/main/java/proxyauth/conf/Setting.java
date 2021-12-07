@@ -78,7 +78,7 @@ public class Setting<A> {
             try {
                 setString(read);
             } catch (Exception ex) {
-                System.err.println(ex);
+                con.writer().println(ex);
                 isValid = false;
             }
 

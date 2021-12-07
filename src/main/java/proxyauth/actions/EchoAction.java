@@ -35,7 +35,7 @@ import java.io.PrintWriter;
 public class EchoAction implements Action {
 
     @Override
-    public boolean action(ProxyRequest proxyRequest) throws IOException {
+    public void action(ProxyRequest proxyRequest) throws IOException {
         boolean success;
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(proxyRequest.incomingSocket.getOutputStream(), Utils.ASCII), false);
         String requestLine = proxyRequest.requestHeaders.get(0);
@@ -60,6 +60,5 @@ public class EchoAction implements Action {
         }
         pw.flush();
         pw.close();
-        return success;
     }
 }

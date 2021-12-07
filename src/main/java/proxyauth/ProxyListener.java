@@ -21,6 +21,7 @@
 package proxyauth;
 
 import proxyauth.conf.Configuration;
+import proxyauth.logging.Log;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Listen for requests and create threads to handle them
@@ -41,6 +44,7 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest>, Cl
      * ThreadGroup containing threads that we start
      */
     private static final ThreadGroup THREADS = new ThreadGroup("proxyauth");
+    private static final Logger LOGGER = Log.logger(ProxyListener.class);
 
     /**
      * requests that have been accepted but not finished
@@ -67,7 +71,7 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest>, Cl
                 )
         ) {
             this.incoming = incoming;
-            System.out.println("Listening " + incoming);
+            LOGGER.info("Listening " + incoming);
 
             //noinspection InfiniteLoopStatement (CTRL+C to stop)
             while (true) {
@@ -79,29 +83,38 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest>, Cl
                     activeRequests.notifyAll();
                     proxyRequest.start();
                     while (activeRequests.size() >= config.MAX_ACTIVE_REQUESTS.getValue()) {
-                        System.out.println("Active request limit reached - waiting for a request to finish");
+                        LOGGER.warning("Active request limit reached - waiting for a request to finish");
                         activeRequests.wait();
                     }
                 }
             }
 
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Caught exception", e);
         }
     }
 
     @Override
-    public void finished(ProxyRequest obj, boolean succeeded) {
+    public void finished(ProxyRequest obj) {
         synchronized (activeRequests) {
             activeRequests.remove(obj);
 
-            System.out.println("Finished " + obj + " success=" + succeeded + "\n" +
+            LOGGER.fine("Finished " + obj + "\n" +
                     "Active requests:" + activeRequests.size() + "\n" +
                     "Active threads:" + THREADS.activeCount()
             );
 
-            if (config.DEBUG.getValue()) {
-                THREADS.list();
+
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                Thread[] threads = new Thread[2 * THREADS.activeCount() + 10];
+                int count = THREADS.enumerate(threads, true);
+                count = Math.min(count, threads.length);
+                StringBuilder sb = new StringBuilder();
+                sb.append("Active threads (").append(count).append("):");
+                for (int i = 0; i < count; i++) {
+                    sb.append("\n - " + threads[i]);
+                }
+                LOGGER.finest(sb.toString());
             }
 
             activeRequests.notifyAll();

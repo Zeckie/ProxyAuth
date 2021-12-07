@@ -21,6 +21,7 @@
 package proxyauth;
 
 import proxyauth.actions.ForwardAction;
+import proxyauth.logging.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static proxyauth.Utils.ASCII;
 
@@ -41,6 +44,7 @@ import static proxyauth.Utils.ASCII;
 public class ProxyRequest extends Thread {
     public final Socket incomingSocket;
     public final ProxyListener parent;
+    public static final Logger LOGGER = Log.logger(ProxyRequest.class);
 
     /**
      * http headers received, including the request line
@@ -74,22 +78,21 @@ public class ProxyRequest extends Thread {
 
     @Override
     public void run() {
-        boolean success = false;
         try (incomingSocket) {
-            System.out.println("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
+            LOGGER.fine("Accepted connection from: " + incomingSocket.getInetAddress() + " port " + incomingSocket.getPort());
             incomingSocket.setSoTimeout(parent.config.SOCKET_TIMEOUT.getValue());
             requestHeaders = processHeaders(incomingSocket.getInputStream());
 
-            success = new ForwardAction(
+            new ForwardAction(
                     InetAddress.getByName(parent.config.UPSTREAM_PROXY_HOST.getValue()),
                     parent.config.UPSTREAM_PROXY_PORT.getValue(),
                     parent.config.USERNAME.getValue(), parent.config.PASSWORD.getValue()
             ).action(this);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Caught exception", e);
         } finally {
-            parent.finished(this, success);
+            parent.finished(this);
         }
     }
 
@@ -108,13 +111,8 @@ public class ProxyRequest extends Thread {
             buf[bytes_read++] = (byte) byte_read;
         }
 
-        if (parent.config.DEBUG.getValue()) {
-            System.out.println("--- Headers ---");
-            System.out.write(buf, 0, bytes_read);
-            System.out.println("--- End: Headers ---");
-            System.out.flush();
-        }
-
-        return Arrays.asList(new String(buf, 0, bytes_read, ASCII).split("\r\n"));
+        final String headerStr = new String(buf, 0, bytes_read, ASCII);
+        LOGGER.fine("HTTP headers:\n" + headerStr);
+        return Arrays.asList(headerStr.split("\r\n"));
     }
 }

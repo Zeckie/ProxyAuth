@@ -21,6 +21,7 @@
 package proxyauth;
 
 import proxyauth.conf.Configuration;
+import proxyauth.logging.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +30,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static proxyauth.Utils.ascii;
 
@@ -40,6 +43,7 @@ import static proxyauth.Utils.ascii;
 public class PassThrough extends Thread {
     public static final AtomicLong THREAD_COUNTER = new AtomicLong(0);
     private final Socket toShutdownOutput;
+    Logger LOGGER = Log.logger(PassThrough.class);
 
     InputStream is;
     OutputStream os;
@@ -47,6 +51,7 @@ public class PassThrough extends Thread {
     public AtomicLong bytesTransferred = new AtomicLong(0);
     public final List<String> headers;
     final Configuration config;
+    private boolean normal = true;
 
     /**
      * Write the supplied http headers, then copy all bytes from input to output
@@ -72,8 +77,7 @@ public class PassThrough extends Thread {
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread() + " Started");
-        boolean succeeded = true;
+        LOGGER.finest(Thread.currentThread() + " Started");
         try {
             try {
 
@@ -91,7 +95,7 @@ public class PassThrough extends Thread {
                     int nxt = is.read();
                     if (nxt == -1) {
                         if (toShutdownOutput!=null) toShutdownOutput.shutdownOutput();
-                        System.out.println(Thread.currentThread() + " Finished. Bytes=" + bytesTransferred.get());
+                        LOGGER.finest(Thread.currentThread() + " Finished. Bytes=" + bytesTransferred.get());
                         return;
                     }
                     bytesTransferred.incrementAndGet();
@@ -101,16 +105,20 @@ public class PassThrough extends Thread {
                 /* Fairly common - e.g. when either side closes the connection with TCP reset.
                     However, we need to make sure we clean up any resources, such as other sockets.
                  */
-                succeeded = false;
+                normal = false;
                 os.close();
                 is.close();
-                System.out.println(Thread.currentThread() + " SocketException -> closed. Bytes=" + bytesTransferred.get());
-                if (config.DEBUG.getValue()) se.printStackTrace();
+                LOGGER.fine(Thread.currentThread() + " SocketException -> closed. Bytes=" + bytesTransferred.get());
+                LOGGER.log(Level.FINER, "Socket closed", se);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Caught exception", e);
         } finally {
-            listener.finished(this, succeeded);
+            listener.finished(this);
         }
+    }
+
+    public boolean getNormal() {
+        return normal;
     }
 }

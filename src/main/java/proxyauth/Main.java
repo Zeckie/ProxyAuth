@@ -116,7 +116,7 @@ public class Main {
                         comspec, "/c", "start", "\"ProxyAuth\"", comspec, "/k", javaExe.getCanonicalPath(),
                         "-cp", classPath, main, "noconsole"
                 };
-                System.out.println("\nLaunching:" + Arrays.toString(cmd));
+                LOGGER.info("\nLaunching:" + Arrays.toString(cmd));
                 Runtime.getRuntime().exec(cmd);
                 return true;
             }
@@ -137,7 +137,7 @@ public class Main {
                 }
             }
             if (!found) {
-                System.err.println("ERROR: Unrecognised switch: " + arg);
+                LOGGER.severe("ERROR: Unrecognised switch: " + arg);
                 OPT_HELP.set();
                 err = true;
             }

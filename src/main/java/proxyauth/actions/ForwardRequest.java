@@ -23,6 +23,7 @@ package proxyauth.actions;
 import proxyauth.PassThrough;
 import proxyauth.ProxyRequest;
 import proxyauth.StatusListener;
+import proxyauth.logging.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -31,6 +32,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static proxyauth.Utils.ASCII;
@@ -50,6 +53,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
      * The request being forwarded
      */
     private final ProxyRequest proxyRequest;
+    private static final Logger LOGGER = Log.logger(ForwardRequest.class);
     /**
      * Connection to upstream proxy server
      */
@@ -94,7 +98,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
             this.upstreamSocket = upstream;
             BufferedOutputStream outputStream = new BufferedOutputStream(upstream.getOutputStream(), proxyRequest.parent.config.BUF_SIZE.getValue());
 
-            if (proxyRequest.parent.config.DEBUG.getValue()) System.out.println("upstream socket = " + upstream);
+            LOGGER.fine("upstream socket = " + upstream);
 
             List<String> headers = processAuthHeaders(proxyRequest.requestHeaders);
             if (proxyRequest.parent.config.CONNECTION_CLOSE.getValue()) {
@@ -109,7 +113,7 @@ public class ForwardRequest implements StatusListener<PassThrough> {
             if (proxyRequest.parent.config.STOP_ON_PROXY_AUTH_ERROR.getValue()) {
                 final String line = proxyRequest.responseHeaders.get(0);
                 if (PROXY_AUTH_ERROR.matcher(line).matches()) {
-                    System.err.println("STOPPING due to proxy auth error: " + line);
+                    LOGGER.severe("STOPPING due to proxy auth error: " + line);
                     System.exit(5); //magic number 5 often = access denied
                     /*
                      * TODO: change to respond to all requests with error page,
@@ -137,30 +141,28 @@ public class ForwardRequest implements StatusListener<PassThrough> {
                 // Wait for streams to be closed
                 upload.join();
                 download.join();
-            } catch (
-                    InterruptedException e) {
-                e.printStackTrace();
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "Caught exception", e);
             }
         }
         synchronized (this) {
-            System.out.println(Thread.currentThread() + " Finished");
-            if (proxyRequest.parent.config.DEBUG.getValue())
-                System.out.println(
-                        "--Finished--\n"
-                                + " - any errors: " + anyErrors + "\n"
-                                + " - request: " + proxyRequest.requestHeaders.get(0) + "\n"
-                                + " - upload: " + upload.bytesTransferred.get() + "\n"
-                                + " - download: " + download.bytesTransferred.get() + "\n"
-                                + " - elapsed: " + (System.currentTimeMillis() - proxyRequest.started.getTime())
-                );
+            LOGGER.info(Thread.currentThread() + " Finished");
+            LOGGER.fine(
+                    "Finished:\n"
+                            + " - any errors: " + anyErrors + "\n"
+                            + " - request: " + proxyRequest.requestHeaders.get(0) + "\n"
+                            + " - upload: " + upload.bytesTransferred.get() + "\n"
+                            + " - download: " + download.bytesTransferred.get() + "\n"
+                            + " - elapsed: " + (System.currentTimeMillis() - proxyRequest.started.getTime())
+            );
             return !anyErrors;
         }
 
     }
 
     @Override
-    public synchronized void finished(PassThrough obj, boolean succeeded) {
-        if (!succeeded) {
+    public synchronized void finished(PassThrough obj) {
+        if (!obj.getNormal()) {
             this.anyErrors = true;
 
             // Close both sockets
@@ -168,13 +170,13 @@ public class ForwardRequest implements StatusListener<PassThrough> {
                 try {
                     upstreamSocket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Caught exception when closing upstream socket", e);
                 }
             }
             try {
                 proxyRequest.incomingSocket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Caught exception when closing downstream socket", e);
             }
         }
     }

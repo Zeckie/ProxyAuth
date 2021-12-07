@@ -45,8 +45,8 @@ public class ForwardAction implements Action {
     }
 
     @Override
-    public boolean action(ProxyRequest proxyRequest) throws IOException {
+    public void action(ProxyRequest proxyRequest) throws IOException {
         ForwardRequest req = new ForwardRequest(proxyRequest, this);
-        return req.go();
+        req.go();
     }
 }

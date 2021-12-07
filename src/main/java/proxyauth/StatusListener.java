@@ -34,5 +34,5 @@ public interface StatusListener<A extends Thread> {
      * @param source    the thread that has finished
      * @param succeeded was the action this thread was performing successful
      */
-    void finished(A source, boolean succeeded);
+    void finished(A source);
 }

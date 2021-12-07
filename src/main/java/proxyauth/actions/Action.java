@@ -34,8 +34,7 @@ public interface Action {
      * Note, this method blocks until the action is complete.
      *
      * @param proxyRequest the request to be actioned
-     * @return the action succeeded
      * @throws IOException
      */
-    boolean action(ProxyRequest proxyRequest) throws IOException;
+    void action(ProxyRequest proxyRequest) throws IOException;
 }
