@@ -95,7 +95,7 @@ jobs:
 
       # Store built jar as an artefact for downloading
       - name: Upload build artefacts
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v2.3.0
         with:
           name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
           path: ./build/libs/*
@@ -103,7 +103,7 @@ jobs:
       # Store test reports as an artefact
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v2.3.0
         with:
           name: "test-reports"
           path: ./build/reports/*
