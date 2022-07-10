@@ -143,7 +143,7 @@ jobs:
           body: ${{ needs.build.outputs.changelog }}
           draft: true
       - name: Download Artefact
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3.0.0
         with:
           name: "${{ needs.build.outputs.name }} - ${{ needs.build.outputs.version }}"
       - name: Upload Release Asset
