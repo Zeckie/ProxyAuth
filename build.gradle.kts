@@ -23,6 +23,7 @@ import java.util.regex.Pattern
 
 plugins {
     java
+    jacoco
     id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -77,6 +78,13 @@ if (majorVersion < MIN_JAVA_VER) {
     tasks.check {
         dependsOn("testsMinJava")
     }
+    tasks.jacocoTestReport {
+        dependsOn(tasks.test)
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestReport)
 }
 
 // set main class

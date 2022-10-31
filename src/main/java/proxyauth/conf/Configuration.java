@@ -20,6 +20,8 @@
 
 package proxyauth.conf;
 
+import proxyauth.logging.Log;
+
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -28,6 +30,7 @@ import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 
 /**
@@ -40,8 +43,6 @@ public class Configuration {
     /* Tuning */
     public final Setting<Integer> BUF_SIZE = new Setting<>(1024, Converter.INTEGER,
             false, "Size of each buffer, in bytes.", null, 100, null);
-    public final Setting<Boolean> DEBUG = new Setting<>(true, Converter.YES_NO,
-            false, "Print debug details?", null, null, null);
     public final Setting<Integer> SOCKET_TIMEOUT = new Setting<>(180000, Converter.INTEGER,
             false, "Timeout in milliseconds used when connecting, reading and writing to TCP sockets",
             null, 0, null);
@@ -88,7 +89,7 @@ public class Configuration {
             true, "Save proxy username and password to configuration file?", null, null, null);
 
     public final String FILE_NAME = "proxyauth.properties";
-
+    static final Logger LOGGER = Log.logger(Configuration.class);
 
     /**
      * Intended for internal use only, such as loading configuration.
@@ -126,10 +127,10 @@ public class Configuration {
                     if (allConfigFields.containsKey(key)) {
                         allConfigFields.get(key).setString(props.getProperty(key));
                     } else {
-                        System.err.println("Discarding unknown setting from properties file: " + key);
+                        LOGGER.warning("Discarding unknown setting from properties file: " + key);
                     }
                 } catch (Exception ex) {
-                    System.err.println("Unable to load " + key + ": " + ex);
+                    LOGGER.warning("Unable to load " + key + ": " + ex);
                 }
             }
         }
@@ -144,10 +145,12 @@ public class Configuration {
             if (val != null && (!setting.special || SAVE_PASS.getValue())) {
                 props.setProperty(key, setting.toUserString());
             } else {
-                System.out.println("Skip save: " + key);
+                LOGGER.finer("Skip save: " + key);
             }
         }
-        props.store(new FileWriter(FILE_NAME), "");
+        File target = new File(FILE_NAME);
+        LOGGER.config("Saving to " + target.getCanonicalPath());
+        props.store(new FileWriter(target), "");
     }
 
     public void init(boolean doLoad, boolean doSave, boolean doWizard, boolean quiet, Console con) throws IOException {

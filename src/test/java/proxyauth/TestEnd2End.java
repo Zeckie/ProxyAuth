@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import proxyauth.conf.Configuration;
+import proxyauth.logging.Log;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -46,6 +47,9 @@ public class TestEnd2End {
 
     public void doE2ETest(boolean close, final String request, final String expectedRequest, final String response, final String expectedResponse) throws IOException, InterruptedException {
         /* Use mostly default configuration, override values important to test */
+
+        Log.init();
+
         Configuration dummy = new Configuration();
         dummy.UPSTREAM_PROXY_HOST.setValue("127.0.1.1");
         dummy.LISTEN_ADDRESS.setValue("127.0.1.2");

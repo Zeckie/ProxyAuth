@@ -18,23 +18,29 @@
  * Otherwise, see <https://www.gnu.org/licenses/>.
  */
 
-package proxyauth.actions;
+package proxyauth.logging;
 
-import proxyauth.ProxyRequest;
-
-import java.io.IOException;
+import java.util.Date;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
 
 /**
- * Performs an action on a proxy request - eg. forward it
+ * Compact logging format (usually single line) to display as console output
  *
  * @author Zeckie
  */
-public interface Action {
-    /**
-     * Note, this method blocks until the action is complete.
-     *
-     * @param proxyRequest the request to be actioned
-     * @throws IOException
-     */
-    void action(ProxyRequest proxyRequest) throws IOException;
+public class CompactFormatter extends Formatter {
+
+    @Override
+    public String format(LogRecord record) {
+        final Throwable thrown = record.getThrown();
+        String exMsg = (thrown == null) ? "" :
+                (": " + thrown.getClass() + ": " + thrown.getLocalizedMessage());
+        return String.format("%1$tl:%1$tM:%1$tS %1$Tp [%2$s] %3$s%4$s%n",
+                new Date(record.getMillis()),
+                record.getLevel(),
+                formatMessage(record),
+                exMsg
+        );
+    }
 }

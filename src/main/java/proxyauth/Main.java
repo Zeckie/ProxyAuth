@@ -21,6 +21,7 @@
 package proxyauth;
 
 import proxyauth.conf.Configuration;
+import proxyauth.logging.Log;
 
 import java.io.Console;
 import java.io.File;
@@ -30,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A simple proxy server to authenticate to another proxy server.
@@ -38,52 +41,58 @@ import java.util.Set;
  */
 public class Main {
 
+    private static final Logger LOGGER = Log.logger(Main.class);
+
     /**
      * ProxyAuth entry point
      */
     public static void main(String[] args) throws IOException {
-
-        boolean argErrs = parseArgs(args);
-        if (!OPT_QUIET.set) {
-            System.out.println(COPYRIGHT);
-        }
-
-        if (OPT_HELP.set) {
-            System.out.println("\nProxyAuth supports the following command line switches:\n");
-            for (Option opt : OPTIONS) {
-                System.out.println(opt.helpMsg);
+        try {
+            Log.init();
+            boolean argErrs = parseArgs(args);
+            if (!OPT_QUIET.set) {
+                System.out.println(COPYRIGHT);
             }
-            System.out.println(LONG_HELP);
-            System.exit(argErrs ? -1 : 0);
-        } else {
-            System.out.println(SHORT_HELP);
-        }
 
-        if (OPT_LICENCE.set) {
-            System.out.println("-- Start: LICENCE --");
-            try (final InputStream licence = Main.class.getResourceAsStream("LICENSE")) {
-                licence.transferTo(System.out);
+            if (OPT_HELP.set) {
+                System.out.println("\nProxyAuth supports the following command line switches:\n");
+                for (Option opt : OPTIONS) {
+                    System.out.println(opt.helpMsg);
+                }
+                System.out.println(LONG_HELP);
+                System.exit(argErrs ? -1 : 0);
+            } else {
+                System.out.println(SHORT_HELP);
             }
-            System.out.println("-- End: LICENCE --");
-            System.exit(0);
+
+            if (OPT_LICENCE.set) {
+                System.out.println("-- Start: LICENCE --");
+                try (final InputStream licence = Main.class.getResourceAsStream("LICENSE")) {
+                    licence.transferTo(System.out);
+                }
+                System.out.println("-- End: LICENCE --");
+                System.exit(0);
+            }
+
+            if (OPT_QUIET.set && OPT_WIZARD.set) {
+                LOGGER.warning("wizard option will be ignored as quiet option specified");
+                OPT_WIZARD.set = false;
+            }
+
+            Console con = System.console();
+            if (con == null && !OPT_NO_CONSOLE.set && !OPT_QUIET.set) {
+                LOGGER.warning("No console detected.\n" +
+                        "ProxyAuth should be run from command prompt / interactive console, or with /quiet switch.");
+                if (launchInteractive()) return;
+            }
+
+            final Configuration configuration = new Configuration();
+            configuration.init(!OPT_RESET.set, !OPT_NO_SAVE.set, OPT_WIZARD.set, OPT_QUIET.set, con);
+
+            new ProxyListener(configuration).run();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Caught exception", ex);
         }
-
-        if (OPT_QUIET.set && OPT_WIZARD.set) {
-            System.err.println("WARN: wizard option will be ignored as quiet option specified");
-            OPT_WIZARD.set = false;
-        }
-
-        Console con = System.console();
-        if (con == null && !OPT_NO_CONSOLE.set && !OPT_QUIET.set) {
-            System.err.println("No console detected.\n" +
-                    "ProxyAuth should be run from command prompt / interactive console, or with /quiet switch.");
-            if (launchInteractive()) return;
-        }
-
-        final Configuration configuration = new Configuration();
-        configuration.init(!OPT_RESET.set, !OPT_NO_SAVE.set, OPT_WIZARD.set, OPT_QUIET.set, con);
-
-        new ProxyListener(configuration).run();
     }
 
     /**
@@ -107,7 +116,7 @@ public class Main {
                         comspec, "/c", "start", "\"ProxyAuth\"", comspec, "/k", javaExe.getCanonicalPath(),
                         "-cp", classPath, main, "noconsole"
                 };
-                System.out.println("\nLaunching:" + Arrays.toString(cmd));
+                LOGGER.info("\nLaunching:" + Arrays.toString(cmd));
                 Runtime.getRuntime().exec(cmd);
                 return true;
             }
@@ -128,7 +137,7 @@ public class Main {
                 }
             }
             if (!found) {
-                System.err.println("ERROR: Unrecognised switch: " + arg);
+                LOGGER.severe("ERROR: Unrecognised switch: " + arg);
                 OPT_HELP.set();
                 err = true;
             }
