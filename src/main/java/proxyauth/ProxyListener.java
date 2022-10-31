@@ -69,6 +69,8 @@ public class ProxyListener implements Runnable, StatusListener<ProxyRequest>, Cl
             this.incoming = incoming;
             System.out.println("Listening " + incoming);
 
+            new HIBPCheck(config).go();
+
             //noinspection InfiniteLoopStatement (CTRL+C to stop)
             while (true) {
                 Socket sock = incoming.accept();
