@@ -23,7 +23,7 @@ import java.util.regex.Pattern
 
 plugins {
     java
-    id("org.jetbrains.changelog") version "1.3.1"
+    id("org.jetbrains.changelog") version "2.0.0"
 }
 
 repositories {
