@@ -24,7 +24,7 @@ jobs:
 
       # Validate wrapper
       - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v1.0.4
+        uses: gradle/wrapper-validation-action@v1.0.6
 
   # Build using Java 8 to check Gradle toolchain / version check
   java8:
